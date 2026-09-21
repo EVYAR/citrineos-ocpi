@@ -32,7 +32,7 @@ export const GET_LOCATIONS_QUERY = gql`
         countryCode
       }
       chargingPool: ChargingStations {
-        id
+        id: ocppConnectionName
         isOnline
         protocol
         capabilities
@@ -53,7 +53,7 @@ export const GET_LOCATIONS_QUERY = gql`
         updatedAt
         evses: Evses {
           id
-          stationId
+          stationId: ocppConnectionName
           evseTypeId
           evseId
           physicalReference
@@ -62,7 +62,7 @@ export const GET_LOCATIONS_QUERY = gql`
           updatedAt
           connectors: Connectors {
             id
-            stationId
+            stationId: ocppConnectionName
             evseId
             connectorId
             evseTypeConnectorId
@@ -111,7 +111,7 @@ export const GET_LOCATION_BY_ID_QUERY = gql`
         countryCode
       }
       chargingPool: ChargingStations {
-        id
+        id: ocppConnectionName
         isOnline
         protocol
         capabilities
@@ -132,7 +132,7 @@ export const GET_LOCATION_BY_ID_QUERY = gql`
         updatedAt
         evses: Evses {
           id
-          stationId
+          stationId: ocppConnectionName
           evseTypeId
           evseId
           physicalReference
@@ -141,7 +141,7 @@ export const GET_LOCATION_BY_ID_QUERY = gql`
           updatedAt
           connectors: Connectors {
             id
-            stationId
+            stationId: ocppConnectionName
             evseId
             connectorId
             evseTypeConnectorId
@@ -170,8 +170,10 @@ export const GET_LOCATION_BY_ID_QUERY = gql`
 export const GET_EVSE_BY_ID_QUERY = gql`
   query GetEvseById($locationId: Int!, $stationId: String!, $evseId: Int!) {
     Locations(where: { id: { _eq: $locationId } }) {
-      chargingPool: ChargingStations(where: { id: { _eq: $stationId } }) {
-        id
+      chargingPool: ChargingStations(
+        where: { ocppConnectionName: { _eq: $stationId } }
+      ) {
+        id: ocppConnectionName
         isOnline
         protocol
         capabilities
@@ -192,7 +194,7 @@ export const GET_EVSE_BY_ID_QUERY = gql`
         updatedAt
         evses: Evses(where: { id: { _eq: $evseId } }) {
           id
-          stationId
+          stationId: ocppConnectionName
           evseTypeId
           evseId
           physicalReference
@@ -213,13 +215,15 @@ export const GET_CONNECTOR_BY_ID_QUERY = gql`
     $connectorId: Int!
   ) {
     Locations(where: { id: { _eq: $locationId } }) {
-      chargingPool: ChargingStations(where: { id: { _eq: $stationId } }) {
+      chargingPool: ChargingStations(
+        where: { ocppConnectionName: { _eq: $stationId } }
+      ) {
         evses: Evses(where: { id: { _eq: $evseId } }) {
           connectors: Connectors(
             where: { connectorId: { _eq: $connectorId } }
           ) {
             id
-            stationId
+            stationId: ocppConnectionName
             evseId
             connectorId
             evseTypeConnectorId
