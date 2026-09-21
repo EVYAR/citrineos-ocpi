@@ -96,7 +96,15 @@ export class CitrineOSServer {
   }
 
   async initConfig() {
-    switch (process.env.APP_ENV) {
+    // The container start command has always selected the Docker deployment
+    // through OCPI_ENV (`cross-env OCPI_ENV=docker ...`), while this runtime
+    // selector only inspected APP_ENV. A deployment without the redundant
+    // APP_ENV variable therefore ran migrations against the Docker database
+    // and then started the API with localhost DB/GraphQL/AMQP defaults,
+    // leaving the process alive but never opening port 8085. Honour the
+    // variable the Docker command actually sets; APP_ENV remains the explicit
+    // override for existing deployments.
+    switch (process.env.APP_ENV ?? process.env.OCPI_ENV) {
       case 'docker':
         this.ocpiConfig = getOcpiSystemConfig(createDockerOcpiConfig());
         break;
