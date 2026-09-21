@@ -6,8 +6,8 @@ import { gql } from 'graphql-request';
 
 export const GET_CHARGING_STATION_BY_ID_QUERY = gql`
   query GetChargingStationById($id: String!) {
-    ChargingStations(where: { id: { _eq: $id } }) {
-      id
+    ChargingStations(where: { ocppConnectionName: { _eq: $id } }) {
+      id: ocppConnectionName
       tenantId
       isOnline
       protocol
@@ -26,7 +26,7 @@ export const GET_CHARGING_STATION_BY_ID_QUERY = gql`
       evses: Evses {
         id
         tenantId
-        stationId
+        stationId: ocppConnectionName
         evseTypeId
         evseId
         physicalReference
@@ -37,7 +37,7 @@ export const GET_CHARGING_STATION_BY_ID_QUERY = gql`
       connectors: Connectors {
         id
         tenantId
-        stationId
+        stationId: ocppConnectionName
         evseId
         connectorId
         evseTypeConnectorId

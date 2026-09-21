@@ -17,7 +17,7 @@ export const GET_TRANSACTIONS_QUERY = gql`
       where: $where
     ) {
       id
-      stationId
+      stationId: ocppConnectionName
       transactionId
       isActive
       chargingState
@@ -65,7 +65,7 @@ export const GET_TRANSACTION_BY_TRANSACTION_ID_QUERY = gql`
         partyId
       }
       id
-      stationId
+      stationId: ocppConnectionName
       transactionId
       isActive
       chargingState
@@ -97,7 +97,7 @@ export const GET_TRANSACTION_BY_TRANSACTION_ID_QUERY = gql`
         }
       }
       chargingStation: ChargingStation {
-        id
+        id: ocppConnectionName
       }
       transactionEvents: TransactionEvents {
         id
