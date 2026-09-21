@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import type {
   GetChargingStationByIdQueryResult,
-  GetChargingStationByIdQueryVariables,
   IDtoEvent,
   OcpiConfig,
 } from '@citrineos/ocpi-base';
@@ -12,7 +11,7 @@ import {
   AsDtoEventHandler,
   DtoEventObjectType,
   DtoEventType,
-  GET_CHARGING_STATION_BY_ID_QUERY,
+  GET_CHARGING_STATION_BY_PK_QUERY,
   LocationsBroadcaster,
   OcpiConfigToken,
   OcpiGraphqlClient,
@@ -57,6 +56,18 @@ export class LocationsModule extends AbstractDtoModule implements OcpiModule {
   async shutdown(): Promise<void> {
     this._logger.info('Shutting down Locations Module...');
     await super.shutdown();
+  }
+
+  private async getChargingStationByPk(
+    stationId: string | number | undefined,
+  ): Promise<ChargingStationDto | undefined> {
+    const id = Number(stationId);
+    if (!Number.isInteger(id)) return undefined;
+    const response = await this.ocpiGraphqlClient.request<
+      GetChargingStationByIdQueryResult,
+      { id: number }
+    >(GET_CHARGING_STATION_BY_PK_QUERY, { id });
+    return response.ChargingStations[0] as ChargingStationDto | undefined;
   }
 
   @AsDtoEventHandler(
@@ -130,19 +141,15 @@ export class LocationsModule extends AbstractDtoModule implements OcpiModule {
       return;
     }
 
-    const chargingStationResponse = await this.ocpiGraphqlClient.request<
-      GetChargingStationByIdQueryResult,
-      GetChargingStationByIdQueryVariables
-    >(GET_CHARGING_STATION_BY_ID_QUERY, { id: evseDto.stationId });
-    if (!chargingStationResponse.ChargingStations[0]) {
+    const chargingStationDto = await this.getChargingStationByPk(
+      evseDto.stationId,
+    );
+    if (!chargingStationDto) {
       this._logger.error(
         `Charging Station not found for ID ${evseDto.stationId}, cannot broadcast.`,
       );
       return;
     }
-    const chargingStationDto = chargingStationResponse
-      .ChargingStations[0] as ChargingStationDto;
-
     await this.locationsBroadcaster.broadcastPutEvse(
       tenant,
       evseDto,
@@ -166,19 +173,15 @@ export class LocationsModule extends AbstractDtoModule implements OcpiModule {
       return;
     }
 
-    const chargingStationResponse = await this.ocpiGraphqlClient.request<
-      GetChargingStationByIdQueryResult,
-      GetChargingStationByIdQueryVariables
-    >(GET_CHARGING_STATION_BY_ID_QUERY, { id: evseDto.stationId! });
-    if (!chargingStationResponse.ChargingStations[0]) {
+    const chargingStationDto = await this.getChargingStationByPk(
+      evseDto.stationId,
+    );
+    if (!chargingStationDto) {
       this._logger.error(
         `Charging Station not found for ID ${evseDto.stationId}, cannot broadcast.`,
       );
       return;
     }
-    const chargingStationDto = chargingStationResponse
-      .ChargingStations[0] as ChargingStationDto;
-
     await this.locationsBroadcaster.broadcastPatchEvse(
       tenant,
       evseDto,
@@ -202,18 +205,16 @@ export class LocationsModule extends AbstractDtoModule implements OcpiModule {
       return;
     }
 
-    const chargingStationResponse = await this.ocpiGraphqlClient.request<
-      GetChargingStationByIdQueryResult,
-      GetChargingStationByIdQueryVariables
-    >(GET_CHARGING_STATION_BY_ID_QUERY, { id: connectorDto.stationId });
-    if (!chargingStationResponse.ChargingStations[0]) {
+    const chargingStationDto = await this.getChargingStationByPk(
+      connectorDto.stationId,
+    );
+    if (!chargingStationDto) {
       this._logger.error(
         `Charging Station not found for ID ${connectorDto.stationId}, cannot broadcast.`,
       );
       return;
     }
-    connectorDto.chargingStation = chargingStationResponse
-      .ChargingStations[0] as ChargingStationDto;
+    connectorDto.chargingStation = chargingStationDto;
 
     await this.locationsBroadcaster.broadcastPutConnector(tenant, connectorDto);
   }
@@ -236,18 +237,16 @@ export class LocationsModule extends AbstractDtoModule implements OcpiModule {
       return;
     }
 
-    const chargingStationResponse = await this.ocpiGraphqlClient.request<
-      GetChargingStationByIdQueryResult,
-      GetChargingStationByIdQueryVariables
-    >(GET_CHARGING_STATION_BY_ID_QUERY, { id: connectorDto.stationId! });
-    if (!chargingStationResponse.ChargingStations[0]) {
+    const chargingStationDto = await this.getChargingStationByPk(
+      connectorDto.stationId,
+    );
+    if (!chargingStationDto) {
       this._logger.error(
         `Charging Station not found for ID ${connectorDto.stationId}, cannot broadcast.`,
       );
       return;
     }
-    connectorDto.chargingStation = chargingStationResponse
-      .ChargingStations[0] as ChargingStationDto;
+    connectorDto.chargingStation = chargingStationDto;
 
     // TODO: filter out status updates, since they should only apply at the EVSE level
 
