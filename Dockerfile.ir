@@ -24,15 +24,18 @@ COPY . .
 COPY ./Server/tsconfig.docker.json /usr/local/apps/citrineos-ocpi/Server/tsconfig.json
 
 # The upstream .dockerignore excludes package-lock.json. Keep the bulk install
-# in a separate cacheable layer, then pin the coupled packages to the exact
-# versions required by the current OCPI workspace.
+# in a separate cacheable layer, then install the coupled packages at the
+# versions declared by the upstream workspace. Reading the versions from the
+# manifests avoids another EV-YAR patch whenever upstream upgrades CitrineOS.
 RUN npm run install-all
-RUN npm install --no-save --legacy-peer-deps \
-    @citrineos/base@1.8.3 \
-    @citrineos/data@1.8.3 \
-    @citrineos/util@1.8.3 \
-    graphql@16.11.0 && \
-  node -e "['base','data','util'].forEach((p) => { const v = require('@citrineos/' + p + '/package.json').version; if (v !== '1.8.3') throw new Error('@citrineos/' + p + ' resolved to ' + v); })"
+RUN CITRINEOS_BASE_VERSION="$(node -p "require('./00_Base/package.json').dependencies['@citrineos/base']")" && \
+  CITRINEOS_DATA_VERSION="$(node -p "require('./seeders/package.json').dependencies['@citrineos/data']")" && \
+  CITRINEOS_UTIL_VERSION="$(node -p "require('./00_Base/package.json').dependencies['@citrineos/util']")" && \
+  npm install --no-save --legacy-peer-deps \
+    "@citrineos/base@${CITRINEOS_BASE_VERSION}" \
+    "@citrineos/data@${CITRINEOS_DATA_VERSION}" \
+    "@citrineos/util@${CITRINEOS_UTIL_VERSION}" \
+    graphql@16.11.0
 RUN npm run build
 
 # The build tree already contains the runtime workspace. Reusing it avoids
