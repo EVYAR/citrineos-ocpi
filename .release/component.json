@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "name": "citrineos-ocpi",
+  "kind": "upstream",
+  "versionFile": "package.json",
+  "baselineVersion": "2.0.1",
+  "developmentBranch": "dev",
+  "productionBranch": "prod",
+  "upstream": true
+}
